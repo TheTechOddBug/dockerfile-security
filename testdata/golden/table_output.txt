@@ -1,0 +1,8 @@
++----------+-------------------------------------------+----------+
+| Rule Id  | Description                               | Severity |
++----------+-------------------------------------------+----------+
+| core-002 | Posible text plain password in dockerfile | High     |
+| core-003 | Recursive copy found                      | Medium   |
+| core-005 | Use image tag instead of SHA256 hash      | Medium   |
+| cred-001 | Generic credential                        | Medium   |
++----------+-------------------------------------------+----------+

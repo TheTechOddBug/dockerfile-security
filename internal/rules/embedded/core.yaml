@@ -20,7 +20,7 @@
   severity: Low
 - id: core-005
   description: Use image tag instead of SHA256 hash
-  regex: '^(?!(FROM[\s]+[\w\d\_]+\@sha256\:[\d\w]{64}))'
+  regex: '^(?!(FROM[\s]+[\w\d_]+@sha256:[\d\w]{64}))'
   reference: https://medium.com/@tariq.m.islam/container-deployments-a-lesson-in-deterministic-ops-a4a467b14a03
   severity: Medium
 - id: core-006
@@ -33,7 +33,7 @@
   severity: Medium
 - id: core-007
   description: Use of deprecated MAINTAINER sentence
-  regex: '^(MAINTAINER[\s]+[\w\d\_\s]+)'
+  regex: '^(MAINTAINER[\s]+[\w\d_\s]+)'
   reference: https://snyk.io/blog/10-docker-image-security-best-practices/
   severity: Low
 - id: core-008

@@ -1,0 +1,5 @@
+- id: custom-001
+  description: Custom test rule - detects EXPOSE
+  regex: '(EXPOSE[\s]+[\d]+)'
+  reference: https://example.com
+  severity: Low

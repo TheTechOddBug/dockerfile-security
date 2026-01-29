@@ -1,0 +1,48 @@
+FROM python@sha256:65cb2034c64b4519f1481c552a30ae3fe19f47f3610513b0387dc2e1570080fa:latest as base
+
+RUN addgroup -S horus && \
+    adduser -S -G horus -s /bin/false horus && \
+    apk update && apk upgrade && apk add curl && \
+    mkdir /staticfiles /data
+
+FROM base as development
+
+# Disable virtualenv creation
+ENV POETRY_VIRTUALENVS_CREATE=false
+
+RUN apk add build-base libffi-dev openssl-dev && \
+    pip install --disable-pip-version-check --no-cache-dir -U pip poetry && \
+    mkdir /wheels
+
+# Install openapi generator dependencies
+COPY ./openapi-generator/ /dependencies/openapi-generator
+RUN cd /dependencies/openapi-generator && \
+    poetry export -f requirements.txt --output /requirements-openapi-generator.txt --without-hashes && \
+    pip wheel --no-cache-dir --no-deps --wheel-dir=/wheels -r /requirements-openapi-generator.txt
+
+# Install Web dependencies
+COPY ./pyproject.toml ./poetry.lock /dependencies/
+RUN cd /dependencies && \
+    poetry export -f requirements.txt --output /requirements.txt --without-hashes && \
+    pip wheel --no-cache-dir --no-deps --wheel-dir=/wheels -r /requirements.txt
+
+
+FROM base as production
+
+COPY --from=development /wheels /wheels
+
+RUN apk add libffi --no-cache openssl libstdc++ && \
+    pip install --disable-pip-version-check --no-cache-dir /wheels/* && \
+    rm -rf /wheels
+
+COPY ./deployment/gunicorn.conf.py /gunicorn.conf.py
+COPY ./entrypoint-web.sh /entrypoint-web
+COPY ./entrypoint-celery-worker.sh /entrypoint-celery-worker
+COPY ./entrypoint-celery-worker-health-check.sh /entrypoint-celery-health-check
+RUN chmod +x /entrypoint*
+
+COPY ./horus_dashboard /horus_dashboard
+RUN chown -R horus:horus /horus_dashboard /staticfiles /data
+
+WORKDIR /horus_dashboard
+RUN ENABLE_OPERATOR_DASHBOARD=false python manage.py collectstatic --noinput
