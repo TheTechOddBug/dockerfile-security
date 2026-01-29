@@ -68,6 +68,8 @@ runs:
     - name: Download and setup dockerfile-sec
       shell: bash
       run: |
+        set -e
+
         # Detect OS and architecture
         OS=$(uname -s | tr '[:upper:]' '[:lower:]')
         ARCH=$(uname -m)
@@ -78,6 +80,9 @@ runs:
           aarch64|arm64) ARCH="arm64" ;;
           *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
         esac
+
+        # Initialize EXT as empty
+        EXT=""
 
         # Map OS names
         case "$OS" in
@@ -90,15 +95,34 @@ runs:
         # Construct download URL
         VERSION="${{ inputs.version }}"
         if [ "$VERSION" = "latest" ]; then
-          VERSION=$(curl -s https://api.github.com/repos/cr0hn/dockerfile-security/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+          # Disable pipefail temporarily to handle grep not finding a match
+          set +o pipefail
+          VERSION=$(curl -sS https://api.github.com/repos/cr0hn/dockerfile-security/releases/latest 2>&1 | grep -o '"tag_name": *"[^"]*"' | head -1 | grep -o '"[^"]*"$' | tr -d '"')
+          set -o pipefail
+
+          # Fallback if API call fails
+          if [ -z "$VERSION" ]; then
+            echo "Warning: Could not fetch latest version from GitHub API, using v0.2.0"
+            VERSION="v0.2.0"
+          fi
+        fi
+
+        # Validate VERSION is not empty
+        if [ -z "$VERSION" ]; then
+          echo "Error: VERSION is empty"
+          exit 1
         fi
 
         BINARY_NAME="dockerfile-sec-${OS}-${ARCH}${EXT}"
         DOWNLOAD_URL="https://github.com/cr0hn/dockerfile-security/releases/download/${VERSION}/${BINARY_NAME}"
 
         echo "Downloading dockerfile-sec ${VERSION} for ${OS}/${ARCH}..."
-        curl -sSL "$DOWNLOAD_URL" -o dockerfile-sec${EXT}
-        chmod +x dockerfile-sec${EXT}
+        if ! curl -fsSL "$DOWNLOAD_URL" -o "dockerfile-sec${EXT}"; then
+          echo "Error: Failed to download ${DOWNLOAD_URL}"
+          exit 1
+        fi
+
+        chmod +x "dockerfile-sec${EXT}"
 
         # Add to PATH
         echo "$(pwd)" >> $GITHUB_PATH
