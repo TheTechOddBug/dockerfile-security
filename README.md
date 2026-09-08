@@ -802,7 +802,7 @@ This project is licensed under the **BSD 3-Clause License** - see the [LICENSE](
 ```
 BSD 3-Clause License
 
-Copyright (c) 2020-2025, Daniel Garcia (cr0hn)
+Copyright (c) 2020-2025, Daniel Alfocea (cr0hn)
 All rights reserved.
 ```
 
@@ -833,7 +833,7 @@ You might also be interested in **[dockerscan](https://github.com/cr0hn/dockersc
 ---
 
 <p align="center">
-  <sub>Made with ❤️ by <a href="https://github.com/cr0hn">Daniel Garcia (cr0hn)</a></sub>
+  <sub>Made with ❤️ by <a href="https://github.com/cr0hn">Daniel Alfocea (cr0hn)</a></sub>
 </p>
 
 <p align="center">
